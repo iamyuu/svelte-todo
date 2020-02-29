@@ -1,65 +1,98 @@
+<script>
+  import uuid from "./utils.js";
+
+  const FILTER_TITLES = ["All", "Active", "Completed"];
+
+  let todos = [];
+  let newTodo = "";
+  let filter = "All";
+
+  $: numActive = todos.filter(todo => todo.completed === false).length;
+  $: filteredTodos =
+    filter === "All"
+      ? todos
+      : filter === "Active"
+      ? todos.filter(todo => todo.completed === false)
+      : todos.filter(todo => todo.completed !== false);
+
+  function addTodo(event) {
+    event.preventDefault();
+
+    todos = [
+      ...todos,
+      {
+        id: uuid(),
+        completed: false,
+        text: newTodo
+      }
+    ];
+
+    newTodo = "";
+  }
+
+  function deleteTodo(id) {
+    todos = todos.filter(todo => todo.id !== id);
+  }
+
+  function clearCompleted() {
+    todos = todos.filter(todo => todo.completed === false);
+  }
+</script>
+
 <section class="todoapp">
   <header class="header">
-    <h1>todos</h1>
-    <input class="new-todo" placeholder="What needs to be done?" autofocus />
+    <h1>TodoMVC</h1>
+    <form on:submit={addTodo}>
+      <input
+        class="new-todo"
+        placeholder="What needs to be done?"
+        autofocus
+        bind:value={newTodo} />
+    </form>
   </header>
   <!-- This section should be hidden by default and shown when there are todos -->
   <section class="main">
-    <input id="toggle-all" class="toggle-all" type="checkbox" />
-    <label for="toggle-all">Mark all as complete</label>
     <ul class="todo-list">
       <!-- These are here just to show the structure of the list items -->
       <!-- List items should get the class `editing` when editing and `completed` when marked as completed -->
-      <li class="completed">
-        <div class="view">
-          <input class="toggle" type="checkbox" checked />
-          <label>Taste JavaScript</label>
-          <button class="destroy" />
-        </div>
-        <input class="edit" value="Create a TodoMVC template" />
-      </li>
-      <li>
-        <div class="view">
-          <input class="toggle" type="checkbox" />
-          <label>Buy a unicorn</label>
-          <button class="destroy" />
-        </div>
-        <input class="edit" value="Rule the web" />
-      </li>
+      {#each filteredTodos as todo}
+        <li class={todo.completed ? 'completed' : ''}>
+          <div class="view">
+            <input
+              class="toggle"
+              type="checkbox"
+              bind:checked={todo.completed} />
+            <label>{todo.text}</label>
+            <button class="destroy" on:click={() => deleteTodo(todo.id)} />
+          </div>
+        </li>
+      {/each}
     </ul>
   </section>
   <!-- This footer should hidden by default and shown when there are todos -->
   <footer class="footer">
     <!-- This should be `0 items left` by default -->
     <span class="todo-count">
-      <strong>0</strong>
+      <strong>{numActive}</strong>
       item left
     </span>
     <!-- Remove this if you don't implement routing -->
     <ul class="filters">
-      <li>
-        <a class="selected" href="#/">All</a>
-      </li>
-      <li>
-        <a href="#/active">Active</a>
-      </li>
-      <li>
-        <a href="#/completed">Completed</a>
-      </li>
+      {#each FILTER_TITLES as filterName}
+        <li key={filterName}>
+          <a
+            href="#"
+            class={filter === filterName ? 'selected' : ''}
+            style="cursor: pointer"
+            on:click={() => (filter = filterName)}>
+            {filterName}
+          </a>
+        </li>
+      {/each}
     </ul>
     <!-- Hidden if no completed items are left ↓ -->
-    <button class="clear-completed">Clear completed</button>
+    <button class="clear-completed" on:click={clearCompleted}>
+      Clear completed
+    </button>
   </footer>
 </section>
-<footer class="info">
-  <p>Double-click to edit a todo</p>
-  <!-- Change this out with your name and url ↓ -->
-  <p>
-    Created by
-    <a href="http://github.com/iamyuu">iamyuu</a>
-  </p>
-  <p>
-    Part of
-    <a href="http://todomvc.com">TodoMVC</a>
-  </p>
-</footer>
