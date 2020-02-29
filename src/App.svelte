@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from "svelte";
   import uuid from "./utils.js";
 
   const FILTER_TITLES = ["All", "Active", "Completed"];
@@ -6,6 +7,13 @@
   let todos = [];
   let newTodo = "";
   let filter = "All";
+
+  onMount(async () => {
+    const res = await fetch(
+      `https://jsonplaceholder.typicode.com/todos?_start=0&_limit=5`
+    );
+    todos = await res.json();
+  });
 
   $: numActive = todos.filter(todo => todo.completed === false).length;
   $: filteredTodos =
@@ -23,7 +31,7 @@
       {
         id: uuid(),
         completed: false,
-        text: newTodo
+        title: newTodo
       }
     ];
 
@@ -62,7 +70,7 @@
               class="toggle"
               type="checkbox"
               bind:checked={todo.completed} />
-            <label>{todo.text}</label>
+            <label>{todo.title}</label>
             <button class="destroy" on:click={() => deleteTodo(todo.id)} />
           </div>
         </li>
